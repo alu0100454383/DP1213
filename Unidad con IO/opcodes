@@ -1,0 +1,6 @@
+opcodes
+
+[15:10 opcode ][9:0 dirección salto]
+[15:12 opcode][11:4  inmediato][3:0 registro destino]
+[15:12 opcode][11:8 WA3][7:4  RA2][3:0  RA1]
+[15:12 opcode][11:4 puerto][3:0 reg]

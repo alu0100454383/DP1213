@@ -1,0 +1,482 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"out",
+				"out_data"
+			],
+			[
+				"sel",
+				"sel_p"
+			],
+			[
+				"SEL",
+				"sel_io"
+			],
+			[
+				"RIO",
+				"r_inm_io"
+			],
+			[
+				"reg",
+				"reg_out1"
+			],
+			[
+				"s_inm",
+				"s_inm_io"
+			],
+			[
+				"sinm",
+				"s_inm_io"
+			],
+			[
+				"rin",
+				"r_inm_io"
+			],
+			[
+				"sin",
+				"s_inm_io"
+			],
+			[
+				"alu",
+				"alu_out"
+			],
+			[
+				"io_",
+				"io_data"
+			],
+			[
+				"end",
+				"end"
+			],
+			[
+				"zet",
+				"zetar"
+			],
+			[
+				"para",
+				"parameter"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "alu.v",
+			"settings":
+			{
+				"buffer_size": 663,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "microc.v",
+			"settings":
+			{
+				"buffer_size": 1472,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "componentes.v",
+			"settings":
+			{
+				"buffer_size": 5161,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "module uc(\n		input clk,\n		input reset,\n		input z,\n		input [5:0] opcode, \n		output s_inc,\n		output s_inm,\n		output we3,\n		output s_PC, \n		output we_PC2,\n		output io_enable,\n		output s_inm_io,\n		output jrel,\n		output [2:0] op);\n\n\n\n\nreg r_inc;\nreg r_inm;\nreg r_we3;\nreg r_we_PC2;\nreg r_rel;\nreg r_PC;\nreg r_inm_io;\nreg r_io_enable;\nreg [2:0] r_op;\ninitial\nbegin\nr_inc=0;\nr_inm=0;\nr_we3=0;\nr_op=0;\nr_rel=0;\n\nend\nalways @ (*)\nbegin         //  operaciones de la alu\nif (~opcode[2])\n   begin \n	  r_inc=1'b1;\n	  r_inm=1'b0;\n	  r_we3=1'b1;\n	  r_op=opcode[5:3]; 	\n	  r_rel=1'b0;\n	  r_we_PC2=1'b0;\n	  r_PC=1'b0;\n    end\nelse//opcode de 6 bits\nbegin\n	case(opcode[5:0])\n		3'b0001xx: //Carga de inmediato\n		begin\n		   r_inc=1'b1;\n		   r_inm=1'b1;\n		   r_we3=1'b1;\n		   r_op=3'b000;\n		   r_rel=1'b0;\n		   r_we_PC2=1'b0;\n		   r_PC=1'b0;\n		   r_inm_io=1'b0;\n		end\n		3'b001: //PC2<-PC\n		begin\n			r_we3=1'b1;\n			r_rel=1'b0;\n			r_inc=1'b1; \n			r_op=3'b000;\n			r_inm=1'b0;\n			r_we_PC2=1'b1;\n			r_PC=1'b0;	\n		end\n		3'b010:  //PC<-PC2\n		begin\n			r_we3=1'b1;	\n			r_rel=1'b0;\n			r_inc=1'b1; \n			r_op=3'b000;\n			r_inm=1'b0;\n			r_we_PC2=1'b0;\n			r_PC=1'b1;	         \n		end\n		3'b011://REG<-PORT (INPUT)\n		begin\n		   r_we3=1'b1;\n		   r_rel=1'b0;\n		   r_inc=1'b1; \n		   r_op=3'b000;\n		   r_inm=1'b0;\n		   r_we_PC2=1'b0;\n		   r_PC=1'b0;\n		   r_io_enable=1'b0;\n		   r_inm_io=1'b1;\n\n		end\n		3'b100://PORT<-REG (OUTPUT)\n		begin\n 		   r_we3=1'b1;\n		   r_rel=1'b0;\n		   r_inc=1'b1; \n		   r_op=3'b000;\n		   r_inm=1'b0;\n		   r_we_PC2=1'b0;\n		   r_PC=1'b0;\n		   r_io_enable=1'b1;\n		   r_inm_io=1'b0;\n		end\n		3'b101://PORT<-INM (IOUTPUT)\n		begin\n\n		end\n		3'b110:\n		begin\n		end\n		3'b111:\n		begin\n			case(opcode[1:0])\n			2'b00: //salto si zero\n			begin\n			   if(z)\n			   begin\n				  r_op=3'b000;\n				  r_inc=1'b0;\n				  r_inm=1'b0;\n				  r_we3=1'b0;\n				  r_rel=1'b0;\n				  r_we_PC2=1'b0;\n				  r_PC=1'b0;\n			   end\n			   else\n			   begin\n				  r_op=3'b000;\n				  r_inc=1'b1;\n				  r_we3=1'b0;\n				  r_inm=1'b0;\n				  r_we_PC2=1'b0;\n				  r_PC=1'b0;\n				  r_rel=1'b0;\n			   end\n			end\n			2'b01: //salto si no zero\n			begin\n			   if(~z)\n			   begin\n				  r_op=3'b000;\n				  r_inc=1'b0;\n				  r_inm=1'b0;\n				  r_we3=1'b0;\n				  r_rel=1'b0;\n				  r_we_PC2=1'b0;\n				  r_PC=1'b0;\n			   end\n			   else\n			   begin\n				  r_op=3'b000;\n				  r_inc=1'b1;\n				  r_we3=1'b0;\n				  r_inm=1'b0;\n				  r_rel=1'b0;\n				  r_we_PC2=1'b0;\n				  r_PC=1'b0;\n			   end\n			end\n			2'b10://salto relativo\n			begin\n			   r_we3=1'b1;\n			   r_rel=1'b1;\n			   r_inc=1'b1; \n			   r_op=3'b000;\n			   r_inm=1'b0;\n			   r_we_PC2=1'b0;\n			   r_PC=1'b0;		\n			 end\n			2'b11: //salto absoluto\n			begin\n			end\n			endcase\n		end\n	endcase\n		\nend \nend\n\nassign op=r_op;\nassign s_inc=r_inc;\nassign s_inm=r_inm;\nassign we3=r_we3;\nassign jrel=r_rel;\nassign s_PC=r_PC;\nassign we_PC2=r_we_PC2;\nassign s_inm_io=r_inm_io;\nassign io_enable=r_io_enable;\n\nendmodule\n\n \n",
+			"file": "uc.v",
+			"file_size": 2875,
+			"file_write_time": 130076764277462012,
+			"settings":
+			{
+				"buffer_size": 2877,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "proc.v",
+			"settings":
+			{
+				"buffer_size": 929,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "000_1_001000000011\n011_1_0010_0000_0001 \n",
+			"file": "progfile.dat",
+			"file_size": 40,
+			"file_write_time": 130076459332490444,
+			"settings":
+			{
+				"buffer_size": 41,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"packa",
+				"Preferences: Browse Packages"
+			]
+		],
+		"width": 392.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/hugo/Dropbox/DP/Codigo_practica2_def/Codigo_Practica2/regfile.dat",
+		"/home/hugo/Dropbox/DP/Codigo_practica2_def/Codigo_Practica2/ioflags.dat",
+		"/home/hugo/Dropbox/DP/Codigo_practica2_def/Codigo_Practica2/opcodes",
+		"/home/hugo/Dropbox/DP/Codigo_practica2_def/Codigo_Practica2/memprog.v",
+		"/home/hugo/Dropbox/DP/Codigo_practica2_def/Codigo_Practica2/ffdc.v",
+		"/home/hugo/.config/sublime-text-3/Packages/User/verilog.sublime-settings"
+	],
+	"find":
+	{
+		"height": 41.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"out_data",
+			"puertos[6]",
+			"puertos[5]",
+			"puertos[4]",
+			"puertos[3]",
+			"puertos[2]",
+			"puertos[1]",
+			"zeta"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"p0",
+			"r_in_data"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "alu.v",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 663,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Verilog/verilog.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "microc.v",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1472,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1446,
+								1446
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Verilog/verilog.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 840.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "componentes.v",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5161,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2959,
+								2959
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Verilog/verilog.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2242.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "uc.v",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2877,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2864,
+								2864
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Verilog/verilog.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 28.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "proc.v",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 929,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								430,
+								430
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Verilog/verilog.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 282.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "progfile.dat",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 41,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								25,
+								25
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 56.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"project": "/home/hugo/Dropbox/DP/Codigo_practica2_def/Codigo_Practica2/DP.sublime-project",
+	"replace":
+	{
+		"height": 76.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
